@@ -92,3 +92,16 @@ diff -ruN pjproject/pjsip/src/pjsua-lib/pjsua_core.c ./pjsip/src/pjsua-lib/pjsua
      cfg->reg_timeout = PJSUA_REG_INTERVAL;
      cfg->reg_delay_before_refresh = PJSIP_REGISTER_CLIENT_DELAY_BEFORE_REFRESH;
      cfg->unreg_timeout = PJSUA_UNREG_TIMEOUT;
+
+diff -ruN pjproject/pjsip/src/pjsua-lib/pjsua_acc.c ./pjsip/src/pjsua-lib/pjsua_acc.c
+--- pjproject/src/pjsip/src/pjsua-lib/pjsua_acc.c	2023-11-24 14:59:45
++++ ./pjsip/src/pjsua-lib/pjsua_acc.c	2023-11-24 15:12:29
+@@ -1614,7 +1614,7 @@
+
+ 		/* Regenerate Contact */
+ 		reg_contact.slen = pj_ansi_snprintf(
+-					    reg_contact.ptr, len,
++					    reg_contact.ptr, len + 1,
+ 					    "<%.*s%.*s>%.*s",
+ 					    (int)tmp_len, tmp_uri,
+ 					    (int)uri_param.slen, uri_param.ptr,
