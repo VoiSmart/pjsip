@@ -4,7 +4,7 @@ set -e
 
 # environment variables
 export OPENSSL_VERSION="3.5.5" # specify the openssl version to use
-export PJSIP_VERSION="2.12.1"
+export PJSIP_VERSION="2.16"
 export OPUS_VERSION="1.6.1"
 export G729_VERSION="1.1.1"
 export MACOS_MIN_SDK_VERSION="10.12"

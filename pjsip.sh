@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 HAS_VIDEO=1 # set to zero to disable video
 
@@ -7,14 +7,27 @@ function realpath { echo $(cd $(dirname "$1"); pwd)/$(basename "$1"); }
 __FILE__=`realpath "$0"`
 __DIR__=`dirname "${__FILE__}"`
 
-# download
-function download() {
-   "${__DIR__}/download.sh" "$1" "$2" #--no-cache
+# clone pjproject at the given tag, reset cleanly if already present
+function clone_pjsip() {
+    DIR=$1
+    TAG=$2
+    if [ ! -d "${DIR}/.git" ]; then
+        if [ -d "${DIR}" ]; then
+            rm -rf "${DIR}"
+        fi
+        echo "Cloning pjproject ${TAG}..."
+        git clone https://github.com/pjsip/pjproject.git "${DIR}"
+    else
+        echo "Using existing pjproject clone, resetting to ${TAG}..."
+        git -C "${DIR}" fetch --tags
+    fi
+    git -C "${DIR}" reset --hard
+    git -C "${DIR}" checkout "${TAG}"
 }
 
 DEVELOPER=$(xcode-select --print-path)
 
-IPHONEOS_DEPLOYMENT_VERSION=${IOS_MIN_SDK_VERSION:-"9.0"}
+IPHONEOS_DEPLOYMENT_VERSION=${IOS_MIN_SDK_VERSION:-"15.0"}
 IPHONEOS_PLATFORM=$(xcrun --sdk iphoneos --show-sdk-platform-path)
 IPHONEOS_SDK=$(xcrun --sdk iphoneos --show-sdk-path)
 
@@ -25,7 +38,6 @@ OSX_DEPLOYMENT_VERSION=${MACOS_MIN_SDK_VERSION:-"10.12"}
 OSX_PLATFORM=$(xcrun --sdk macosx --show-sdk-platform-path)
 OSX_SDK=$(xcrun --sdk macosx --show-sdk-path)
 BASE_DIR="$1"
-PJSIP_URL="https://github.com/pjsip/pjproject/archive/${PJSIP_VERSION:-2.10}.tar.gz"
 PJSIP_DIR="$1/src"
 LIB_PATHS=("pjlib/lib" \
            "pjlib-util/lib" \
@@ -41,7 +53,7 @@ while [ "$#" -gt 0 ]; do
     case $1 in
         --with-openssl)
             if [ "$#" -gt 1 ]; then
-                OPENSSL_PREFIX=$(python -c "import os,sys; print os.path.realpath(sys.argv[1])" "$2")
+                OPENSSL_PREFIX=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$2")
                 shift 2
                 continue
             else
@@ -51,7 +63,7 @@ while [ "$#" -gt 0 ]; do
             ;;
         --with-opus)
             if [ "$#" -gt 1 ]; then
-                OPUS_PREFIX=$(python -c "import os,sys; print os.path.realpath(sys.argv[1])" "$2")
+                OPUS_PREFIX=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$2")
                 shift 2
                 continue
             else
@@ -61,7 +73,7 @@ while [ "$#" -gt 0 ]; do
             ;;
         --with-g729)
 						if [ "$#" -gt 1 ]; then
-                G729_PREFIX=$(python -c "import os,sys; print os.path.realpath(sys.argv[1])" "$2")
+                G729_PREFIX=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$2")
                 shift 2
                 continue
             else
@@ -128,10 +140,10 @@ function configure() {
 		export DEVPATH="${OSX_PLATFORM}/Developer"
 	elif [ "$TYPE" == "ios" ]; then
 		# iOS
-		if [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "i386" ]; then
+		if [ "$ARCH" == "x86_64" ]; then
 			export DEVPATH="${IPHONESIMULATOR_PLATFORM}/Developer"
-			export CFLAGS="${CFLAGS} -O2 -m32 -mios-simulator-version-min=${IPHONEOS_DEPLOYMENT_VERSION}"
-			export LDFLAGS="${LDFLAGS} -O2 -m32 -mios-simulator-version-min=${IPHONEOS_DEPLOYMENT_VERSION}"
+			export CFLAGS="${CFLAGS} -O2 -mios-simulator-version-min=${IPHONEOS_DEPLOYMENT_VERSION}"
+			export LDFLAGS="${LDFLAGS} -O2 -mios-simulator-version-min=${IPHONEOS_DEPLOYMENT_VERSION}"
 		else
 			export MIN_IOS="-miphoneos-version-min=${IPHONEOS_DEPLOYMENT_VERSION}"
 			export DEVPATH="${IPHONEOS_PLATFORM}/Developer"
@@ -181,12 +193,15 @@ function configure() {
 }
 
 function patch_pjsip() {
-    SRC_DIR=$1;
-    ROOT_DIR=$2;
-    cd "${SRC_DIR}";
-    patch -s -p0 < "${ROOT_DIR}/patch-pjsip.patch";
-    cd "${ROOT_DIR}";
-    echo "Patch done.";
+    SRC_DIR=$1
+    ROOT_DIR=$2
+    cd "${SRC_DIR}"
+    for PATCH in $(ls "${ROOT_DIR}/patches"/patch-*.patch | sort); do
+        echo "Applying ${PATCH}..."
+        git apply "${PATCH}"
+    done
+    cd "${ROOT_DIR}"
+    echo "Patch done."
 }
 
 function clean_libs () {
@@ -221,7 +236,7 @@ function copy_libs () {
 	done
 }
 
-function build () {
+function build_arch () {
 	ARCH=$1
 	SDK=$2
 	TYPE=$3
@@ -239,6 +254,17 @@ function build () {
 	make lib >> ${LOG} 2>&1
 
 	copy_libs ${ARCH} ${TYPE}
+
+	popd > /dev/null
+}
+
+# Map architecture identifier to the name used in compiled library filenames.
+# arm64 compilers produce "aarch64" in the filename; everything else matches.
+function lib_arch_name() {
+	case $1 in
+		arm64) echo "aarch64" ;;
+		*) echo "$1" ;;
+	esac
 }
 
 function do_lipo() {
@@ -247,17 +273,21 @@ function do_lipo() {
 	TMP=`mktemp -t lipo`
 	echo "Lipo libs... (${TMP})"
 
+	FIRST_ARCH=$1
+	FIRST_LIB_ARCH=$(lib_arch_name ${FIRST_ARCH})
+
 	for LIB_DIR in ${LIB_PATHS[*]}; do # loop over libs
 		DST_DIR="${PJSIP_DIR}/${LIB_DIR}"
 
 		# use the first architecture to find all libraries
-		PATTERN_DIR="${DST_DIR}-${TYPE}-$1"
+		PATTERN_DIR="${DST_DIR}-${TYPE}-${FIRST_ARCH}"
 		for PATTERN_FILE in `ls -l1 "${PATTERN_DIR}"`; do
 			OPTIONS=""
 
 			# loop over all architectures and collect the current library
 			for ARCH in "$@"; do
-				FILE="${DST_DIR}-${TYPE}-${ARCH}/${PATTERN_FILE/-$1-/-${ARCH}-}"
+				LIB_ARCH=$(lib_arch_name ${ARCH})
+				FILE="${DST_DIR}-${TYPE}-${ARCH}/${PATTERN_FILE/-${FIRST_LIB_ARCH}-/-${LIB_ARCH}-}"
 				if [ -e "${FILE}" ]; then
 					OPTIONS="$OPTIONS -arch ${ARCH} ${FILE}"
 				fi
@@ -265,7 +295,7 @@ function do_lipo() {
 
 			if [ "$OPTIONS" != "" ]; then
 				OUTPUT_PREFIX=$(dirname "${DST_DIR}")
-				OUTPUT="${OUTPUT_PREFIX}/lib/${PATTERN_FILE/-$1-/-}"
+				OUTPUT="${OUTPUT_PREFIX}/lib/${PATTERN_FILE/-${FIRST_LIB_ARCH}-/-}"
 
 				OPTIONS="${OPTIONS} -create -output ${OUTPUT}"
 				echo "$OPTIONS" >> "${TMP}"
@@ -278,14 +308,11 @@ function do_lipo() {
 	done < "${TMP}"
 }
 
-download "${PJSIP_URL}" "${PJSIP_DIR}"
+clone_pjsip "${PJSIP_DIR}" "${PJSIP_VERSION}"
 
 patch_pjsip "${PJSIP_DIR}" "${__DIR__}"
 
-build "i386" "${IPHONESIMULATOR_SDK}" "ios"
-build "x86_64" "${IPHONESIMULATOR_SDK}" "ios"
-build "armv7" "${IPHONEOS_SDK}" "ios"
-build "armv7s" "${IPHONEOS_SDK}" "ios"
-build "arm64" "${IPHONEOS_SDK}" "ios"
+build_arch "x86_64" "${IPHONESIMULATOR_SDK}" "ios"
+build_arch "arm64" "${IPHONEOS_SDK}" "ios"
 
-do_lipo "ios" "i386" "x86_64" "armv7" "armv7s" "arm64"
+do_lipo "ios" "x86_64" "arm64"

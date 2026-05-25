@@ -48,7 +48,7 @@ Pod::Spec.new do |s|
                                 'build/pjproject/src/pjsip/lib/*ios.a',
                                 'build/pjproject/src/third_party/lib/*ios.a'
                               ]
-  s.ios.frameworks          = 'UIKit', 'VideoToolbox', 'AudioToolbox', 'AVFoundation', 'OpenGLES', 'QuartzCore', 'CoreMedia', 'CoreVideo'
+  s.ios.frameworks          = 'UIKit', 'VideoToolbox', 'AudioToolbox', 'AVFoundation', 'OpenGLES', 'QuartzCore', 'CoreMedia', 'CoreVideo', 'Metal', 'MetalKit'
 
   header_search_paths     = [
                                 '"$(PODS_ROOT)/Headers/Public/pjsip/pjlib/include"',

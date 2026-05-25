@@ -1,0 +1,114 @@
+diff --git a/pjsip/include/pjsip-ua/sip_regc.h b/pjsip/include/pjsip-ua/sip_regc.h
+index fc8afbe8c..db8b56953 100644
+--- a/pjsip/include/pjsip-ua/sip_regc.h
++++ b/pjsip/include/pjsip-ua/sip_regc.h
+@@ -222,7 +222,8 @@ PJ_DECL(pj_status_t) pjsip_regc_init(pjsip_regc *regc,
+                                      const pj_str_t *to_url,
+                                      int ccnt,
+                                      const pj_str_t contact[],
+-                                     pj_uint32_t expires);
++                                     pj_uint32_t expires,
++                                     const pj_str_t *cid);
+ 
+ 
+ /**
+diff --git a/pjsip/include/pjsua-lib/pjsua.h b/pjsip/include/pjsua-lib/pjsua.h
+index 767ab9eff..8b34dd3f5 100644
+--- a/pjsip/include/pjsua-lib/pjsua.h
++++ b/pjsip/include/pjsua-lib/pjsua.h
+@@ -4075,7 +4075,15 @@ typedef struct pjsua_acc_config
+      */
+     pj_str_t        id;
+ 
+-    /** 
++    /**
++     * The Call ID used in REGISTER. If the value is empty, a random generated
++     * value will be used.
++     *
++     * This field is optional.
++     */
++    pj_str_t        call_id;
++
++    /**
+      * This is the URL to be put in the request URI for the registration,
+      * and will look something like "sip:serviceprovider".
+      *
+diff --git a/pjsip/src/pjsip-ua/sip_reg.c b/pjsip/src/pjsip-ua/sip_reg.c
+index 18209b925..a3463900b 100644
+--- a/pjsip/src/pjsip-ua/sip_reg.c
++++ b/pjsip/src/pjsip-ua/sip_reg.c
+@@ -352,7 +352,8 @@ PJ_DEF(pj_status_t) pjsip_regc_init( pjsip_regc *regc,
+                                      const pj_str_t *to_url,
+                                      int contact_cnt,
+                                      const pj_str_t contact[],
+-                                     pj_uint32_t expires)
++                                     pj_uint32_t expires,
++                                     const pj_str_t *cid)
+ {
+     pj_str_t tmp;
+     pj_status_t status;
+@@ -405,7 +406,12 @@ PJ_DEF(pj_status_t) pjsip_regc_init( pjsip_regc *regc,
+ 
+     /* Set "Call-ID" header. */
+     regc->cid_hdr = pjsip_cid_hdr_create(regc->pool);
+-    pj_create_unique_string(regc->pool, &regc->cid_hdr->id);
++    if (cid->slen > 0){
++        pj_strdup_with_null(regc->pool, &regc->cid_hdr->id, cid);
++        PJ_LOG(4,(THIS_FILE, "regc: callID %.*s", regc->cid_hdr->id.slen, regc->cid_hdr->id.ptr));
++    }else {
++        pj_create_unique_string(regc->pool, &regc->cid_hdr->id);
++    }
+ 
+     /* Set "CSeq" header. */
+     regc->cseq_hdr = pjsip_cseq_hdr_create(regc->pool);
+diff --git a/pjsip/src/pjsua-lib/pjsua_acc.c b/pjsip/src/pjsua-lib/pjsua_acc.c
+index 526cb392d..5b656c8d7 100644
+--- a/pjsip/src/pjsua-lib/pjsua_acc.c
++++ b/pjsip/src/pjsua-lib/pjsua_acc.c
+@@ -98,6 +98,7 @@ PJ_DEF(void) pjsua_acc_config_dup( pj_pool_t *pool,
+     pj_strdup_with_null(pool, &dst->rfc5626_instance_id,
+                         &src->rfc5626_instance_id);
+     pj_strdup_with_null(pool, &dst->rfc5626_reg_id, &src->rfc5626_reg_id);
++    pj_strdup_with_null(pool, &dst->call_id, &src->call_id);
+ 
+     dst->proxy_cnt = src->proxy_cnt;
+     for (i=0; i<src->proxy_cnt; ++i)
+@@ -1731,7 +1732,7 @@ done:
+ 
+                 /* Regenerate Contact */
+                 reg_contact.slen = pj_ansi_snprintf(
+-                                            reg_contact.ptr, len,
++                                            reg_contact.ptr, len + 1,
+                                             "<%.*s%.*s>%.*s",
+                                             (int)tmp_len, tmp_uri,
+                                             (int)uri_param.slen, uri_param.ptr,
+@@ -2750,11 +2751,13 @@ static pj_status_t pjsua_regc_init(int acc_id)
+     }
+ 
+     status = pjsip_regc_init( acc->regc,
+-                              &acc->cfg.reg_uri, 
+-                              &acc->cfg.id, 
++                              &acc->cfg.reg_uri,
++                              &acc->cfg.id,
+                               &acc->cfg.id,
+                               1, &acc->reg_contact,
+-                              acc->cfg.reg_timeout);
++                              acc->cfg.reg_timeout,
++                              &acc->cfg.call_id);
++
+     if (status != PJ_SUCCESS) {
+         pjsua_perror(THIS_FILE, 
+                      "Client registration initialization error", 
+diff --git a/pjsip/src/pjsua-lib/pjsua_core.c b/pjsip/src/pjsua-lib/pjsua_core.c
+index 33caf547f..3c76a8851 100644
+--- a/pjsip/src/pjsua-lib/pjsua_core.c
++++ b/pjsip/src/pjsua-lib/pjsua_core.c
+@@ -334,7 +334,7 @@ PJ_DEF(void) pjsua_acc_config_default(pjsua_acc_config *cfg)
+     pjsua_media_config med_cfg;
+ 
+     pj_bzero(cfg, sizeof(*cfg));
+-
++    cfg->call_id = pj_str("");
+     cfg->reg_timeout = PJSUA_REG_INTERVAL;
+     cfg->reg_delay_before_refresh = PJSIP_REGISTER_CLIENT_DELAY_BEFORE_REFRESH;
+     cfg->unreg_timeout = PJSUA_UNREG_TIMEOUT;
