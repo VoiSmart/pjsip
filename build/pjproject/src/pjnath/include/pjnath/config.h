@@ -1,4 +1,3 @@
-/* $Id$ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -46,7 +45,7 @@
  * default 1
  */
 #ifndef PJNATH_ERROR_LEVEL
-#   define PJNATH_ERROR_LEVEL			    1
+#   define PJNATH_ERROR_LEVEL                       1
 #endif
 
 
@@ -61,7 +60,7 @@
  * Default: 16
  */
 #ifndef PJ_STUN_MAX_ATTR
-#   define PJ_STUN_MAX_ATTR			    16
+#   define PJ_STUN_MAX_ATTR                         16
 #endif
 
 /**
@@ -73,7 +72,7 @@
  * retransmission.
  */
 #ifndef PJ_STUN_RTO_VALUE
-#   define PJ_STUN_RTO_VALUE			    100
+#   define PJ_STUN_RTO_VALUE                        100
 #endif
 
 
@@ -85,7 +84,7 @@
  * The default value is 16x RTO (as per RFC 3489-bis).
  */
 #ifndef PJ_STUN_TIMEOUT_VALUE
-#   define PJ_STUN_TIMEOUT_VALUE		    (16 * PJ_STUN_RTO_VALUE)
+#   define PJ_STUN_TIMEOUT_VALUE                    (16 * PJ_STUN_RTO_VALUE)
 #endif
 
 
@@ -95,7 +94,7 @@
  * Default: 7 (as per RFC 3489-bis)
  */
 #ifndef PJ_STUN_MAX_TRANSMIT_COUNT
-#   define PJ_STUN_MAX_TRANSMIT_COUNT		    7
+#   define PJ_STUN_MAX_TRANSMIT_COUNT               7
 #endif
 
 
@@ -105,7 +104,7 @@
  * Default: 10000 (as per RFC 3489-bis)
  */
 #ifndef PJ_STUN_RES_CACHE_DURATION
-#   define PJ_STUN_RES_CACHE_DURATION		    10000
+#   define PJ_STUN_RES_CACHE_DURATION               10000
 #endif
 
 
@@ -113,14 +112,14 @@
  * Maximum size of STUN message.
  */
 #ifndef PJ_STUN_MAX_PKT_LEN
-#   define PJ_STUN_MAX_PKT_LEN			    800
+#   define PJ_STUN_MAX_PKT_LEN                      800
 #endif
 
 
 /**
  * Default STUN port as defined by RFC 3489.
  */
-#define PJ_STUN_PORT				    3478
+#define PJ_STUN_PORT                                3478
 
 
 /**
@@ -129,7 +128,7 @@
  * Default: ASCII 0
  */
 #ifndef PJ_STUN_STRING_ATTR_PAD_CHR
-#   define PJ_STUN_STRING_ATTR_PAD_CHR		    0
+#   define PJ_STUN_STRING_ATTR_PAD_CHR              0
 #endif
 
 
@@ -139,7 +138,7 @@
  * not backward compatible with current STUN specification.
  */
 #ifndef PJ_STUN_OLD_STYLE_MI_FINGERPRINT
-#   define PJ_STUN_OLD_STYLE_MI_FINGERPRINT	    0
+#   define PJ_STUN_OLD_STYLE_MI_FINGERPRINT         0
 #endif
 
 
@@ -151,7 +150,7 @@
  * The packet buffer size for the STUN transport.
  */
 #ifndef PJ_STUN_SOCK_PKT_LEN
-#   define PJ_STUN_SOCK_PKT_LEN			    2000
+#   define PJ_STUN_SOCK_PKT_LEN                     2000
 #endif
 
 
@@ -159,7 +158,7 @@
  * The duration of the STUN keep-alive period, in seconds.
  */
 #ifndef PJ_STUN_KEEP_ALIVE_SEC
-#   define PJ_STUN_KEEP_ALIVE_SEC		    15
+#   define PJ_STUN_KEEP_ALIVE_SEC                   15
 #endif
 
 
@@ -171,7 +170,7 @@
  * Maximum DNS SRV entries to be processed in the DNS SRV response
  */
 #ifndef PJ_TURN_MAX_DNS_SRV_CNT
-#   define PJ_TURN_MAX_DNS_SRV_CNT		    4
+#   define PJ_TURN_MAX_DNS_SRV_CNT                  4
 #endif
 
 
@@ -179,7 +178,7 @@
  * Maximum TURN packet size to be supported.
  */
 #ifndef PJ_TURN_MAX_PKT_LEN
-#   define PJ_TURN_MAX_PKT_LEN			    3000
+#   define PJ_TURN_MAX_PKT_LEN                      3000
 #endif
 
 
@@ -188,7 +187,7 @@
  * TURN protocol specification.
  */
 #ifndef PJ_TURN_PERM_TIMEOUT
-#   define PJ_TURN_PERM_TIMEOUT			    300
+#   define PJ_TURN_PERM_TIMEOUT                     300
 #endif
 
 
@@ -197,7 +196,7 @@
  * TURN protocol specification.
  */
 #ifndef PJ_TURN_CHANNEL_TIMEOUT
-#   define PJ_TURN_CHANNEL_TIMEOUT		    600
+#   define PJ_TURN_CHANNEL_TIMEOUT                  600
 #endif
 
 
@@ -207,7 +206,7 @@
  * PJ_TURN_PERM_TIMEOUT setting.
  */
 #ifndef PJ_TURN_REFRESH_SEC_BEFORE
-#   define PJ_TURN_REFRESH_SEC_BEFORE		    60
+#   define PJ_TURN_REFRESH_SEC_BEFORE               60
 #endif
 
 
@@ -217,7 +216,7 @@
  * need to be refreshed.
  */
 #ifndef PJ_TURN_KEEP_ALIVE_SEC
-#   define PJ_TURN_KEEP_ALIVE_SEC		    15
+#   define PJ_TURN_KEEP_ALIVE_SEC                   15
 #endif
 
 /**
@@ -225,7 +224,17 @@
  * open/accept for each TURN allocation (or TURN control connection).
  */
 #ifndef PJ_TURN_MAX_TCP_CONN_CNT
-#   define PJ_TURN_MAX_TCP_CONN_CNT		    8
+#   define PJ_TURN_MAX_TCP_CONN_CNT                 8
+#endif
+
+/**
+ * Specify default value of TURN TLS socket connection timeout in contacting
+ * TURN server.
+ *
+ * Default: 10 seconds
+ */
+#ifndef PJ_TURN_SSL_SOCK_DEFAULT_TIMEOUT
+#   define PJ_TURN_SSL_SOCK_DEFAULT_TIMEOUT         10
 #endif
 
 /* **************************************************************************
@@ -238,7 +247,7 @@
  * Default: 16
  */
 #ifndef PJ_ICE_MAX_CAND
-#   define PJ_ICE_MAX_CAND			    16
+#   define PJ_ICE_MAX_CAND                          16
 #endif
 
 
@@ -248,7 +257,7 @@
  * Default: 8
  */
 #ifndef PJ_ICE_ST_MAX_CAND
-#   define PJ_ICE_ST_MAX_CAND			    8
+#   define PJ_ICE_ST_MAX_CAND                       8
 #endif
 
 
@@ -259,7 +268,7 @@
  * Default: 2
  */
 #ifndef PJ_ICE_MAX_STUN
-#   define PJ_ICE_MAX_STUN			    2
+#   define PJ_ICE_MAX_STUN                          2
 #endif
 
 
@@ -270,7 +279,7 @@
  * Default: 2
  */
 #ifndef PJ_ICE_MAX_TURN
-#   define PJ_ICE_MAX_TURN			    3
+#   define PJ_ICE_MAX_TURN                          3
 #endif
 
 
@@ -279,20 +288,20 @@
  * the maximum number of components (PJ_ICE_MAX_COMP) value.
  */
 #ifndef PJ_ICE_COMP_BITS
-#   define PJ_ICE_COMP_BITS			    1
+#   define PJ_ICE_COMP_BITS                         1
 #endif
 
 
 /**
  * Maximum number of ICE components.
  */
-#define PJ_ICE_MAX_COMP				    (1<<PJ_ICE_COMP_BITS)
+#define PJ_ICE_MAX_COMP                             (1<<PJ_ICE_COMP_BITS)
 
 /**
  * Use the priority value according to the ice-draft.
  */
 #ifndef PJNATH_ICE_PRIO_STD
-#   define PJNATH_ICE_PRIO_STD			    1
+#   define PJNATH_ICE_PRIO_STD                      1
 #endif
 
 
@@ -301,9 +310,9 @@
  */
 #ifndef PJ_ICE_CAND_TYPE_PREF_BITS
 #   if PJNATH_ICE_PRIO_STD
-#	define PJ_ICE_CAND_TYPE_PREF_BITS	    8
+#       define PJ_ICE_CAND_TYPE_PREF_BITS           8
 #   else
-#	define PJ_ICE_CAND_TYPE_PREF_BITS	    2
+#       define PJ_ICE_CAND_TYPE_PREF_BITS           2
 #   endif
 #endif
 
@@ -320,7 +329,7 @@
  * Default: 0
  */
 #ifndef PJ_ICE_LOCAL_PREF_BITS
-#   define PJ_ICE_LOCAL_PREF_BITS		    0
+#   define PJ_ICE_LOCAL_PREF_BITS                   0
 #endif
 
 
@@ -330,7 +339,7 @@
  * Default: 32
  */
 #ifndef PJ_ICE_MAX_CHECKS
-#   define PJ_ICE_MAX_CHECKS			    32
+#   define PJ_ICE_MAX_CHECKS                        32
 #endif
 
 
@@ -340,7 +349,7 @@
  * Default: 20
  */
 #ifndef PJ_ICE_TA_VAL
-#   define PJ_ICE_TA_VAL			    20
+#   define PJ_ICE_TA_VAL                            20
 #endif
 
 
@@ -359,7 +368,7 @@
  * Default: 1 (yes, cancel all)
  */
 #ifndef PJ_ICE_CANCEL_ALL
-#   define PJ_ICE_CANCEL_ALL			    1
+#   define PJ_ICE_CANCEL_ALL                        1
 #endif
 
 
@@ -380,7 +389,7 @@
  * Default: 10000 (milliseconds)
  */
 #ifndef ICE_CONTROLLED_AGENT_WAIT_NOMINATION_TIMEOUT
-#   define ICE_CONTROLLED_AGENT_WAIT_NOMINATION_TIMEOUT	10000
+#   define ICE_CONTROLLED_AGENT_WAIT_NOMINATION_TIMEOUT 10000
 #endif
 
 
@@ -392,9 +401,31 @@
  * Default: 4*PJ_STUN_RTO_VALUE (milliseconds)
  */
 #ifndef PJ_ICE_NOMINATED_CHECK_DELAY
-#   define PJ_ICE_NOMINATED_CHECK_DELAY		    (4*PJ_STUN_RTO_VALUE)
+#   define PJ_ICE_NOMINATED_CHECK_DELAY             (4*PJ_STUN_RTO_VALUE)
 #endif
 
+/**
+ * Specify whether to check the source address of the incoming messages.
+ * The source address will be compared to the remote candidate which has
+ * a completed connectivity check or received a connectivity check.
+ * 
+ * Default: 1 (yes)
+ */
+#ifndef PJ_ICE_SESS_CHECK_SRC_ADDR
+#   define PJ_ICE_SESS_CHECK_SRC_ADDR               1
+#endif
+
+ /**
+  * If ICE source address check is enabled, any incoming data is allowed
+  * from all possible remote candidates until ICE is completed. Use this 
+  * configuration to specify the time to wait before setting the remote
+  * address to a fix address.
+  *
+  * Defalut: 1000ms 
+  */
+#ifndef PJ_ICE_SESS_SET_RADDR_DELAY
+#   define PJ_ICE_SESS_SET_RADDR_DELAY             1000
+#endif
 
 /**
  * Minimum interval value to be used for sending STUN keep-alive on the ICE
@@ -407,7 +438,7 @@
  * @see PJ_ICE_SESS_KEEP_ALIVE_MAX_RAND
  */
 #ifndef PJ_ICE_SESS_KEEP_ALIVE_MIN
-#   define PJ_ICE_SESS_KEEP_ALIVE_MIN		    20
+#   define PJ_ICE_SESS_KEEP_ALIVE_MIN               20
 #endif
 
 /* Warn about deprecated macro */
@@ -426,7 +457,7 @@
  * @see PJ_ICE_SESS_KEEP_ALIVE_MIN
  */
 #ifndef PJ_ICE_SESS_KEEP_ALIVE_MAX_RAND
-#   define PJ_ICE_SESS_KEEP_ALIVE_MAX_RAND	    5
+#   define PJ_ICE_SESS_KEEP_ALIVE_MAX_RAND          5
 #endif
 
 /* Warn about deprecated macro */
@@ -442,7 +473,7 @@
  * Default: 8 (characters)
  */
 #ifndef PJ_ICE_UFRAG_LEN
-#   define PJ_ICE_UFRAG_LEN			    8
+#   define PJ_ICE_UFRAG_LEN                         8
 #endif
 
 
@@ -453,7 +484,7 @@
  * Default: 24 (characters)
  */
 #ifndef PJ_ICE_PWD_LEN
-#   define PJ_ICE_PWD_LEN			    24
+#   define PJ_ICE_PWD_LEN                           24
 #endif
 
 
@@ -464,7 +495,7 @@
  * Default: PJ_FALSE
  */
 #ifndef PJ_ICE_ST_USE_TURN_PERMANENT_PERM
-#   define PJ_ICE_ST_USE_TURN_PERMANENT_PERM	    PJ_FALSE
+#   define PJ_ICE_ST_USE_TURN_PERMANENT_PERM        PJ_FALSE
 #endif
 
 
@@ -488,94 +519,110 @@
  * Default: 40 seconds.
  */
 #ifndef PJ_TRICKLE_ICE_END_OF_CAND_TIMEOUT
-#   define PJ_TRICKLE_ICE_END_OF_CAND_TIMEOUT	    40
+#   define PJ_TRICKLE_ICE_END_OF_CAND_TIMEOUT       40
 #endif
 
 
 /** ICE session pool initial size. */
 #ifndef PJNATH_POOL_LEN_ICE_SESS
-#   define PJNATH_POOL_LEN_ICE_SESS		    512
+#   define PJNATH_POOL_LEN_ICE_SESS                 512
 #endif
 
 /** ICE session pool increment size */
 #ifndef PJNATH_POOL_INC_ICE_SESS
-#   define PJNATH_POOL_INC_ICE_SESS		    512
+#   define PJNATH_POOL_INC_ICE_SESS                 512
 #endif
 
 /** ICE stream transport pool initial size. */
 #ifndef PJNATH_POOL_LEN_ICE_STRANS
-#   define PJNATH_POOL_LEN_ICE_STRANS		    1000
+#   define PJNATH_POOL_LEN_ICE_STRANS               1000
 #endif
 
 /** ICE stream transport pool increment size */
 #ifndef PJNATH_POOL_INC_ICE_STRANS
-#   define PJNATH_POOL_INC_ICE_STRANS		    512
+#   define PJNATH_POOL_INC_ICE_STRANS               512
 #endif
 
 /** NAT detect pool initial size */
 #ifndef PJNATH_POOL_LEN_NATCK
-#   define PJNATH_POOL_LEN_NATCK		    512
+#   define PJNATH_POOL_LEN_NATCK                    512
 #endif
 
 /** NAT detect pool increment size */
 #ifndef PJNATH_POOL_INC_NATCK
-#   define PJNATH_POOL_INC_NATCK		    512
+#   define PJNATH_POOL_INC_NATCK                    512
 #endif
 
 /** STUN session pool initial size */
 #ifndef PJNATH_POOL_LEN_STUN_SESS
-#   define PJNATH_POOL_LEN_STUN_SESS		    1000
+#   define PJNATH_POOL_LEN_STUN_SESS                1000
 #endif
 
 /** STUN session pool increment size */
 #ifndef PJNATH_POOL_INC_STUN_SESS
-#   define PJNATH_POOL_INC_STUN_SESS		    1000
+#   define PJNATH_POOL_INC_STUN_SESS                1000
 #endif
 
 /** STUN session transmit data pool initial size */
 #ifndef PJNATH_POOL_LEN_STUN_TDATA
-#   define PJNATH_POOL_LEN_STUN_TDATA		    1000
+#   define PJNATH_POOL_LEN_STUN_TDATA               1000
 #endif
 
 /** STUN session transmit data pool increment size */
 #ifndef PJNATH_POOL_INC_STUN_TDATA
-#   define PJNATH_POOL_INC_STUN_TDATA		    1000
+#   define PJNATH_POOL_INC_STUN_TDATA               1000
 #endif
 
 /** TURN session initial pool size */
 #ifndef PJNATH_POOL_LEN_TURN_SESS
-#   define PJNATH_POOL_LEN_TURN_SESS		    1000
+#   define PJNATH_POOL_LEN_TURN_SESS                1000
 #endif
 
 /** TURN session pool increment size */
 #ifndef PJNATH_POOL_INC_TURN_SESS
-#   define PJNATH_POOL_INC_TURN_SESS		    1000
+#   define PJNATH_POOL_INC_TURN_SESS                1000
 #endif
 
 /** TURN socket initial pool size */
 #ifndef PJNATH_POOL_LEN_TURN_SOCK
-#   define PJNATH_POOL_LEN_TURN_SOCK		    1000
+#   define PJNATH_POOL_LEN_TURN_SOCK                1000
 #endif
 
 /** TURN socket pool increment size */
 #ifndef PJNATH_POOL_INC_TURN_SOCK
-#   define PJNATH_POOL_INC_TURN_SOCK		    1000
+#   define PJNATH_POOL_INC_TURN_SOCK                1000
 #endif
 
 /** Default STUN software name */
 #ifndef PJNATH_STUN_SOFTWARE_NAME
+/** Create STUN software name */
 #   define PJNATH_MAKE_SW_NAME(a,b,c,d)     "pjnath-" #a "." #b "." #c d
+/** Create STUN software name */
 #   define PJNATH_MAKE_SW_NAME2(a,b,c,d)    PJNATH_MAKE_SW_NAME(a,b,c,d)
+/** Default STUN software name */
 #   define PJNATH_STUN_SOFTWARE_NAME        PJNATH_MAKE_SW_NAME2( \
-						    PJ_VERSION_NUM_MAJOR, \
-						    PJ_VERSION_NUM_MINOR, \
-						    PJ_VERSION_NUM_REV, \
-						    PJ_VERSION_NUM_EXTRA)
+                                                    PJ_VERSION_NUM_MAJOR, \
+                                                    PJ_VERSION_NUM_MINOR, \
+                                                    PJ_VERSION_NUM_REV, \
+                                                    PJ_VERSION_NUM_EXTRA)
 #endif
+
+
+/* **************************************************************************
+ * UPnP
+ */
+
+/** Default duration for searching UPnP Internet Gateway Devices (in seconds).
+ *  Default: 5 seconds
+ */
+#ifndef PJ_UPNP_DEFAULT_SEARCH_TIME 
+#   define PJ_UPNP_DEFAULT_SEARCH_TIME  5
+#endif
+
 
 /**
  * @}
  */
 
-#endif	/* __PJNATH_CONFIG_H__ */
+#endif  /* __PJNATH_CONFIG_H__ */
 

@@ -1,4 +1,3 @@
-/* $Id$ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -57,7 +56,7 @@ PJ_BEGIN_DECL
  * Application then specifies digest AKA credential by initializing the 
  * authentication credential as follows:
  *
- @code
+ \verbatim
 
     pjsip_cred_info cred;
 
@@ -66,20 +65,19 @@ PJ_BEGIN_DECL
     cred.scheme = pj_str("Digest");
     cred.realm = pj_str("ims-domain.test");
     cred.username = pj_str("user@ims-domain.test");
-    cred.data_type = PJSIP_CRED_DATA_PLAIN_PASSWD | PJSIP_CRED_DATA_EXT_AKA;
-    cred.data = pj_str("password");
+    cred.data_type = PJSIP_CRED_DATA_EXT_AKA;
 
     // AKA extended info
     cred.ext.aka.k = pj_str("password");
     cred.ext.aka.cb = &pjsip_auth_create_aka_response
 
- @endcode
+ \endverbatim
  *
  * Description:
- * - To support AKA, application adds \a PJSIP_CRED_DATA_EXT_AKA flag in the
+ * - To support AKA, application adds #PJSIP_CRED_DATA_EXT_AKA flag in the
  * \a data_type field. This indicates that extended information specific to
  * AKA authentication is available in the credential, and that response 
- * digest computation will use the callback function instead of the usual MD5
+ * digest computation will use the callback function instead of the usual
  * digest computation.
  *
  * - The \a scheme for the credential is "Digest". 
@@ -87,12 +85,6 @@ PJ_BEGIN_DECL
  * - The \a realm is the expected realm in the challenge. Application may 
  * also specify wildcard realm ("*") if it wishes to respond to any realms 
  * in the challenge.
- *
- * - The \a data field is optional. Application may fill this with the password
- * if it wants to support both MD5 and AKA MD5 in a single credential. The
- * pjsip_auth_create_aka_response() function will use this field if the
- * challenge indicates "MD5" as the algorithm instead of "AKAv1-MD5" or
- * "AKAv2-MD5".
  *
  * - The \a ext.aka.k field specifies the permanent subscriber key to be used
  * for AKA authentication. Application may specify binary password containing
@@ -112,60 +104,60 @@ PJ_BEGIN_DECL
 /**
  * Length of Authentication Key (AK) in bytes.
  */
-#define PJSIP_AKA_AKLEN		6
+#define PJSIP_AKA_AKLEN         6
 
 /**
  * Length of Authentication Management Field (AMF) in bytes.
  */
-#define PJSIP_AKA_AMFLEN	2
+#define PJSIP_AKA_AMFLEN        2
 
 /**
  * Length of AUTN in bytes.
  */
-#define PJSIP_AKA_AUTNLEN	16
+#define PJSIP_AKA_AUTNLEN       16
 
 /**
  * Length of Confidentiality Key (CK) in bytes.
  */
-#define PJSIP_AKA_CKLEN		16
+#define PJSIP_AKA_CKLEN         16
 
 /**
  * Length of Integrity Key (AK) in bytes.
  */
-#define PJSIP_AKA_IKLEN		16
+#define PJSIP_AKA_IKLEN         16
 
 /**
  * Length of permanent/subscriber Key (K) in bytes.
  */
-#define PJSIP_AKA_KLEN		16
+#define PJSIP_AKA_KLEN          32
 
 /**
  * Length of AKA authentication code in bytes.
  */
-#define PJSIP_AKA_MACLEN	8
+#define PJSIP_AKA_MACLEN        8
 
 /**
  * Length of operator key in bytes.
  */
-#define PJSIP_AKA_OPLEN		16
+#define PJSIP_AKA_OPLEN         16
 
 /**
  * Length of random challenge (RAND) in bytes.
  */
-#define PJSIP_AKA_RANDLEN	16
+#define PJSIP_AKA_RANDLEN       16
 
 /**
  * Length of response digest in bytes.
  */
-#define PJSIP_AKA_RESLEN	8
+#define PJSIP_AKA_RESLEN        8
 
 /**
  * Length of sequence number (SQN) in bytes.
  */
-#define PJSIP_AKA_SQNLEN	6
+#define PJSIP_AKA_SQNLEN        6
 
 /**
- * This function creates MD5, AKAv1-MD5, or AKAv2-MD5 response for
+ * This function creates an AKAv1-MD5, or AKAv2-MD5 response for
  * the specified challenge in \a chal, according to the algorithm 
  * specified in the challenge, and based on the information in the 
  * credential \a cred.
@@ -177,27 +169,27 @@ PJ_BEGIN_DECL
  * the credential, and fills up other AKA specific information in
  * the credential.
  *
- * @param pool	    Pool to allocate memory.
- * @param chal	    The authentication challenge sent by server in 401
- *		    or 401 response, as either Proxy-Authenticate or
- *		    WWW-Authenticate header.
- * @param cred	    The credential to be used.
+ * @param pool      Pool to allocate memory.
+ * @param chal      The authentication challenge sent by server in 407
+ *                  or 401 response, as either Proxy-Authenticate or
+ *                  WWW-Authenticate header.
+ * @param cred      The credential to be used.
  * @param method    The request method.
- * @param auth	    The digest credential where the digest response
- *		    will be placed to. Upon calling this function, the
- *		    nonce, nc, cnonce, qop, uri, and realm fields of
- *		    this structure must have been set by caller. Upon
- *		    return, the \a response field will be initialized
- *		    by this function.
+ * @param auth      The digest credential where the digest response
+ *                  will be placed to. Upon calling this function, the
+ *                  nonce, nc, cnonce, qop, uri, and realm fields of
+ *                  this structure must have been set by caller. Upon
+ *                  return, the \a response field will be initialized
+ *                  by this function.
  *
- * @return	    PJ_SUCCESS if response has been created successfully.
+ * @return          PJ_SUCCESS if response has been created successfully.
  */
 PJ_DECL(pj_status_t) pjsip_auth_create_aka_response(
-					     pj_pool_t *pool,
-					     const pjsip_digest_challenge*chal,
-					     const pjsip_cred_info *cred,
-					     const pj_str_t *method,
-					     pjsip_digest_credential *auth);
+                                             pj_pool_t *pool,
+                                             const pjsip_digest_challenge*chal,
+                                             const pjsip_cred_info *cred,
+                                             const pj_str_t *method,
+                                             pjsip_digest_credential *auth);
 
 
 /**
@@ -209,5 +201,5 @@ PJ_DECL(pj_status_t) pjsip_auth_create_aka_response(
 PJ_END_DECL
 
 
-#endif	/* __PJSIP_AUTH_SIP_AUTH_AKA_H__ */
+#endif  /* __PJSIP_AUTH_SIP_AUTH_AKA_H__ */
 

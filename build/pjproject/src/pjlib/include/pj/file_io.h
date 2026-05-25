@@ -1,4 +1,3 @@
-/* $Id$ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -62,7 +61,24 @@ enum pj_file_access
     PJ_O_WRONLY     = 0x1102,   /**< Open file for writing.             */
     PJ_O_RDWR       = 0x1103,   /**< Open file for reading and writing. 
                                      File will be truncated.            */
-    PJ_O_APPEND     = 0x1108    /**< Append to existing file.           */
+    PJ_O_APPEND     = 0x1108,   /**< Append to existing file.           */
+    PJ_O_CLOEXEC    = 0x1104,   /**< Enable unix close-on-exec flag.    */
+
+    PJ_O_ASYNC      = 0x200,    /**< Open file for asynchronous 
+                                   (OVERLAPPED) IO.
+                                   Currently supports on Windows
+                                   platform only. Otherwise is ignored. */
+    PJ_O_SEQUENTIAL = 0x400,    /**< Access is intended to be sequential
+                                   from beginning to end. This flag 
+                                   should not be used together with 
+                                   PJ_O_RANDOM.
+                                   Currently supports on Windows
+                                   platform only. Otherwise is ignored. */
+    PJ_O_RANDOM     = 0x800     /**< Access is intended to be random.
+                                   This flag should not be used together
+                                   with PJ_O_SEQUENTIAL.
+                                   Currently supports on Windows
+                                   platform only.Otherwise is ignored.  */
 };
 
 /**
@@ -167,9 +183,9 @@ PJ_DECL(pj_status_t) pj_file_getpos(pj_oshandle_t fd,
 /**
  * Flush file buffers.
  *
- * @param fd		The file descriptor.
+ * @param fd            The file descriptor.
  *
- * @return		PJ_SUCCESS or the appropriate error code on error.
+ * @return              PJ_SUCCESS or the appropriate error code on error.
  */
 PJ_DECL(pj_status_t) pj_file_flush(pj_oshandle_t fd);
 

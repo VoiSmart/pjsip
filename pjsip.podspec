@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "pjsip"
-  s.version      = "2.12.2"
+  s.version      = "2.16"
   s.summary      = "pjsip for iOS"
   s.homepage     = "http://www.pjsip.org"
   s.author       = 'www.pjsip.org'
@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
                       LICENSE
                     }
 
-  s.ios.deployment_target   = '12.0'
+  s.ios.deployment_target   = '15.0'
   s.ios.source_files        =
   s.ios.public_header_files = [
                                 'build/pjproject/src/pjlib/include/**/*.h',

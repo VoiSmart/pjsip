@@ -1,4 +1,3 @@
-/* $Id$ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -35,6 +34,7 @@
 #include <pjmedia-codec/ilbc.h>
 #include <pjmedia-codec/ipp_codecs.h>
 #include <pjmedia-codec/l16.h>
+#include <pjmedia-codec/lyra.h>
 #include <pjmedia-codec/opencore_amr.h>
 #include <pjmedia-codec/openh264.h>
 #include <pjmedia-codec/opus.h>
@@ -44,5 +44,5 @@
 #include <pjmedia-codec/vid_toolbox.h>
 #include <pjmedia-codec/vpx.h>
 
-#endif	/* __PJMEDIA_CODEC_PJMEDIA_CODEC_H__ */
+#endif  /* __PJMEDIA_CODEC_PJMEDIA_CODEC_H__ */
 

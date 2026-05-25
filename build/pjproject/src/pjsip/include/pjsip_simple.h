@@ -1,4 +1,3 @@
-/* $Id$ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -34,6 +33,7 @@
 #ifndef __PJSIP_SIMPLE_H__
 #define __PJSIP_SIMPLE_H__
 
+#include <pjsip-simple/dlg_event.h>
 #include <pjsip-simple/evsub.h>
 #include <pjsip-simple/evsub_msg.h>
 #include <pjsip-simple/iscomposing.h>
@@ -43,4 +43,4 @@
 #include <pjsip-simple/publish.h>
 #include <pjsip-simple/xpidf.h>
 
-#endif	/* __PJSIP_SIMPLE_H__ */
+#endif  /* __PJSIP_SIMPLE_H__ */

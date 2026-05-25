@@ -1,4 +1,3 @@
-/* $Id$ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -25,6 +24,7 @@
  * @brief PJMEDIA main header file.
  */
 #include <pjmedia/alaw_ulaw.h>
+#include <pjmedia/avi.h>
 #include <pjmedia/avi_stream.h>
 #include <pjmedia/bidirectional.h>
 #include <pjmedia/circbuf.h>
@@ -68,6 +68,7 @@
 #include <pjmedia/transport_loop.h>
 #include <pjmedia/transport_srtp.h>
 #include <pjmedia/transport_udp.h>
+#include <pjmedia/txt_stream.h>
 #include <pjmedia/vid_codec.h>
 #include <pjmedia/vid_conf.h>
 #include <pjmedia/vid_port.h>
@@ -78,5 +79,5 @@
 #include <pjmedia/wave.h>
 #include <pjmedia/wsola.h>
 
-#endif	/* __PJMEDIA_H__ */
+#endif  /* __PJMEDIA_H__ */
 

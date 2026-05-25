@@ -1,4 +1,3 @@
-/* $Id$ */
 /* 
  * Copyright (C) 2008-2011 Teluu Inc. (http://www.teluu.com)
  * Copyright (C) 2003-2008 Benny Prijono <benny@prijono.org>
@@ -68,6 +67,15 @@ PJ_DECL(pj_bool_t) pj_file_exists(const char *filename);
 PJ_DECL(pj_off_t) pj_file_size(const char *filename);
 
 /**
+ * Returns the size of the file.
+ *
+ * @param fh            The file handle (or FILE* for ansi file backend).
+ *
+ * @return              The file size in bytes or -1 on error.
+ */
+PJ_DECL(pj_off_t) pj_file_size_by_handle(pj_oshandle_t fh);
+
+/**
  * Delete a file.
  *
  * @param filename      The filename.
@@ -106,4 +114,4 @@ PJ_DECL(pj_status_t) pj_file_getstat(const char *filename, pj_file_stat *stat);
 PJ_END_DECL
 
 
-#endif	/* __PJ_FILE_ACCESS_H__ */
+#endif  /* __PJ_FILE_ACCESS_H__ */

@@ -1,4 +1,3 @@
-/* $Id$ */
 /*
  * Copyright (C) 2013 Teluu Inc. (http://www.teluu.com)
  *
@@ -48,27 +47,27 @@ struct PresenceStatus
     /**
      * Buddy's online status.
      */
-    pjsua_buddy_status	 status;
+    pjsua_buddy_status   status;
 
     /**
      * Text to describe buddy's online status.
      */
-    string		 statusText;
+    string               statusText;
     
     /**
      * Activity type.
      */
-    pjrpid_activity	 activity;
+    pjrpid_activity      activity;
 
     /**
      * Optional text describing the person/element.
      */
-    string		 note;
+    string               note;
 
     /**
      * Optional RPID ID string.
      */
-    string		 rpidId;
+    string               rpidId;
 
 public:
     /**
@@ -87,25 +86,33 @@ struct BuddyConfig : public PersistentObject
     /**
      * Buddy URL or name address.
      */
-    string	 	 uri;
+    string               uri;
 
     /**
      * Specify whether presence subscription should start immediately.
      */
-    bool	 	 subscribe;
+    bool                 subscribe;
+
+    /**
+     * Specify whether we should immediately subscribe to the buddy's
+     * dialog event, such as for Busy Lamp Field (BLF) feature.
+     * Note that only one subscription (presence or dialog event)
+     * can be active at any time.
+     */
+    bool                 subscribe_dlg_event;
 
 public:
     /**
      * Read this object from a container node.
      *
-     * @param node		Container to read values from.
+     * @param node              Container to read values from.
      */
     virtual void readObject(const ContainerNode &node) PJSUA2_THROW(Error);
 
     /**
      * Write this object to a container node.
      *
-     * @param node		Container to write values to.
+     * @param node              Container to write values to.
      */
     virtual void writeObject(ContainerNode &node) const PJSUA2_THROW(Error);
 };
@@ -120,19 +127,25 @@ struct BuddyInfo
     /**
      * The full URI of the buddy, as specified in the configuration.
      */
-    string		 uri;
+    string               uri;
 
     /**
      * Buddy's Contact, only available when presence subscription has
      * been established to the buddy.
      */
-    string		 contact;
+    string               contact;
+
+    /**
+     * The account ID associated with this buddy. If not associated
+     * with any account, the value will be PJSUA_INVALID_ID.
+     */
+    pjsua_acc_id         accId;
 
     /**
      * Flag to indicate that we should monitor the presence information for
      * this buddy (normally yes, unless explicitly disabled).
      */
-    bool		 presMonitorEnabled;
+    bool                 presMonitorEnabled;
 
     /**
      * If \a presMonitorEnabled is true, this specifies the last state of
@@ -142,12 +155,12 @@ struct BuddyInfo
      * PJSIP_EVSUB_STATE_TERMINATED, and the termination reason will be
      * specified in \a subTermReason.
      */
-    pjsip_evsub_state	 subState;
+    pjsip_evsub_state    subState;
 
     /**
      * String representation of subscription state.
      */
-    string	         subStateName;
+    string               subStateName;
 
     /**
      * Specifies the last presence subscription termination code. This would
@@ -156,27 +169,30 @@ struct BuddyInfo
      * 200, and subscription termination reason will be given in the
      * \a subTermReason field.
      */
-    pjsip_status_code	 subTermCode;
+    pjsip_status_code    subTermCode;
 
     /**
      * Specifies the last presence subscription termination reason. If 
      * presence subscription is currently active, the value will be empty.
      */
-    string		 subTermReason;
+    string               subTermReason;
 
     /**
      * Presence status.
      */
-    PresenceStatus	 presStatus;
+    PresenceStatus       presStatus;
 
 public:
     /**
      * Default constructor
      */
-    BuddyInfo() : subState(PJSIP_EVSUB_STATE_UNKNOWN),
-		  subTermCode(PJSIP_SC_NULL)
+    BuddyInfo() 
+    : accId(PJSUA_INVALID_ID),
+      presMonitorEnabled(true),
+      subState(PJSIP_EVSUB_STATE_UNKNOWN),
+      subTermCode(PJSIP_SC_NULL)
     {}
-		    
+                    
 
     /** Import from pjsip structure */
     void fromPj(const pjsua_buddy_info &pbi);
@@ -237,29 +253,32 @@ public:
      * the instance that calls this create() method as it is only the original
      * instance destructor that will delete the underlying Buddy in PJSUA-LIB.
      *
-     * @param acc		The account for this buddy.
-     * @param cfg		The buddy config.
+     * IMPORTANT: Application must make sure that the Account instance remains
+     * valid for the entire lifetime of the Buddy object.
+     *
+     * @param acc               The account for this buddy.
+     * @param cfg               The buddy config.
      */
     void create(Account &acc, const BuddyConfig &cfg) PJSUA2_THROW(Error);
     
     /**
      * Check if this buddy is valid.
      *
-     * @return			True if it is.
+     * @return                  True if it is.
      */
     bool isValid() const;
 
     /**
      * Get PJSUA-LIB buddy ID or index associated with this buddy.
      *
-     * @return			Integer greater than or equal to zero.
+     * @return                  Integer greater than or equal to zero.
      */
     int getId() const;
 
     /**
      * Get detailed buddy info.
      *
-     * @return			Buddy info.
+     * @return                  Buddy info.
      */
     BuddyInfo getInfo() const PJSUA2_THROW(Error);
 
@@ -268,8 +287,8 @@ public:
      * subscribed, application will be informed about buddy's presence status
      * changed via \a onBuddyState() callback.
      *
-     * @param subscribe		Specify true to activate presence
-     *				subscription.
+     * @param subscribe         Specify true to activate presence
+     *                          subscription.
      */
     void subscribePresence(bool subscribe) PJSUA2_THROW(Error);
     
@@ -292,21 +311,55 @@ public:
      void updatePresence(void) PJSUA2_THROW(Error);
      
     /**
+     * Enable/disable buddy's dialog event monitoring. Once buddy's dialog event
+     * is subscribed, application will be informed about buddy's dialog info
+     * status change via \a onBuddyDlgEventState() callback.
+     *
+     * Note that only one subscription (presence or dialog event) can be active
+     * at any time.
+     *
+     * @param subscribe     Specify non-zero to activate dialog event subscription
+     *                      to the specified buddy.
+     *
+     * @return              PJ_SUCCESS on success, or the appropriate error code.
+     */
+    void subscribeDlgEvent(bool subscribe) PJSUA2_THROW(Error);
+
+    /**
+     * Update the dialog event information for the buddy. Although the library
+     * periodically refreshes the dialog event subscription for all buddies, some
+     * application may want to refresh the buddy's dialog event subscription
+     * immediately, and in this case it can use this function to accomplish
+     * this.
+     *
+     * Note that the buddy's dialog event subscription will only be initiated
+     * if dialog event monitoring is enabled for the buddy. See
+     * subscribeDlgEvent() for more info. Also if dialog event
+     * subscription for the buddy is already active, this function will not do
+     * anything.
+     *
+     * Once the dialog event subscription is activated successfully for the buddy,
+     * application will be notified about the buddy's dialog info status in the
+     * onBuddyDlgEventState() callback.
+     */
+    void updateDlgEvent(void) PJSUA2_THROW(Error);
+
+    /**
      * Send instant messaging outside dialog, using this buddy's specified
      * account for route set and authentication.
      *
-     * @param prm	Sending instant message parameter.
+     * @param prm       Sending instant message parameter.
      */
     void sendInstantMessage(const SendInstantMessageParam &prm)
-			    PJSUA2_THROW(Error);
+                            PJSUA2_THROW(Error);
 
     /**
      * Send typing indication outside dialog.
      *
-     * @param prm	Sending instant message parameter.
+     * @param prm       Sending instant message parameter.
      */
     void sendTypingIndication(const SendTypingIndicationParam &prm)
-	 PJSUA2_THROW(Error);
+         PJSUA2_THROW(Error);
 
 public:
     /*
@@ -319,6 +372,12 @@ public:
      */
     virtual void onBuddyState()
     {}
+    /**
+     * Notify application when the buddy dialog state has changed.
+     * Application may then query the buddy into to get the details.
+     */
+    virtual void onBuddyDlgEventState()
+    {}
 
     /**
      * Notify application when the state of client subscription session
@@ -326,16 +385,23 @@ public:
      * callback to retrieve more detailed information about the state
      * changed event.
      *
-     * @param prm	Callback parameter.
+     * @param prm       Callback parameter.
      */
     virtual void onBuddyEvSubState(OnBuddyEvSubStateParam &prm)
     { PJ_UNUSED_ARG(prm); }
-     
+    /**
+     * Notify application when the state of client subscription session
+     * associated with a buddy dialog state has changed. Application
+     * may use this callback to retrieve more detailed information about the
+     * state changed event.
+     */
+    virtual void onBuddyEvSubDlgEventState(OnBuddyEvSubStateParam &prm)
+    { PJ_UNUSED_ARG(prm); }
 private:
      /**
       * Buddy ID.
       */
-    pjsua_buddy_id	 id;
+    pjsua_buddy_id       id;
 
 private:
     friend class Endpoint;
@@ -364,4 +430,4 @@ typedef std::vector<Buddy> BuddyVector2;
 
 } // namespace pj
 
-#endif	/* __PJSUA2_PRESENCE_HPP__ */
+#endif  /* __PJSUA2_PRESENCE_HPP__ */
