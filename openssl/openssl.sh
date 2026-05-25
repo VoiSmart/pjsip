@@ -25,14 +25,14 @@ set -u
 # SCRIPT DEFAULTS
 
 # Default version in case no version is specified
-DEFAULTVERSION="1.1.0i"
+DEFAULTVERSION="3.5.5"
 
 # Default (=full) set of architectures (OpenSSL <= 1.0.2) or targets (OpenSSL >= 1.1.0) to build
 #DEFAULTARCHS="ios_x86_64 ios_arm64 ios_armv7s ios_armv7 tv_x86_64 tv_arm64 mac_x86_64"
 #DEFAULTTARGETS="ios-sim-cross-x86_64 ios64-cross-arm64 ios-cross-armv7s ios-cross-armv7 tvos-sim-cross-x86_64 tvos64-cross-arm64 macos64-x86_64"
 DEFAULTARCHS="ios_x86_64 ios_arm64 tv_x86_64 tv_arm64 mac_x86_64 watchos_armv7k watchos-arm64_32"
 #DEFAULTTARGETS="ios-sim-cross-x86_64 ios64-cross-arm64 tvos-sim-cross-x86_64 tvos64-cross-arm64 macos64-x86_64 watchos-cross-armv7k watchos-cross-arm64_32"
-DEFAULTTARGETS="ios-sim-cross-i386 ios-sim-cross-x86_64 ios64-cross-arm64 ios-cross-armv7 ios-cross-armv7s macos64-x86_64" # only targeting macOS and iOS for integration with pjsip (do we really need i386???)
+DEFAULTTARGETS="ios-sim-cross-x86_64 ios64-cross-arm64" # iOS 15+ only
 
 # Init optional env variables (use available variable or default to empty string)
 CURL_OPTIONS="${CURL_OPTIONS:-}"
@@ -440,31 +440,15 @@ OPENSSL_ARCHIVE_BASE_NAME="openssl-${VERSION}"
 OPENSSL_ARCHIVE_FILE_NAME="${OPENSSL_ARCHIVE_BASE_NAME}.tar.gz"
 if [ ! -e ${OPENSSL_ARCHIVE_FILE_NAME} ]; then
   echo "Downloading ${OPENSSL_ARCHIVE_FILE_NAME}..."
-  OPENSSL_ARCHIVE_URL="https://www.openssl.org/source/${OPENSSL_ARCHIVE_FILE_NAME}"
+  OPENSSL_ARCHIVE_URL="https://github.com/openssl/openssl/releases/download/openssl-${VERSION}/${OPENSSL_ARCHIVE_FILE_NAME}"
 
-  # Check whether file exists here (this is the location of the latest version for each branch)
-  # -s be silent, -f return non-zero exit status on failure, -I get header (do not download)
-  curl ${CURL_OPTIONS} -sfI "${OPENSSL_ARCHIVE_URL}" > /dev/null
+  curl ${CURL_OPTIONS} -fL --retry 3 --show-error "${OPENSSL_ARCHIVE_URL}" -o "${OPENSSL_ARCHIVE_FILE_NAME}"
 
-  # If unsuccessful, try the archive
   if [ $? -ne 0 ]; then
-    BRANCH=$(echo "${VERSION}" | grep -Eo '^[0-9]\.[0-9]\.[0-9]')
-    OPENSSL_ARCHIVE_URL="https://www.openssl.org/source/old/${BRANCH}/${OPENSSL_ARCHIVE_FILE_NAME}"
-
-    curl ${CURL_OPTIONS} -sfI "${OPENSSL_ARCHIVE_URL}" > /dev/null
-  fi
-
-  # Both attempts failed, so report the error
-  if [ $? -ne 0 ]; then
-    echo "An error occurred trying to find OpenSSL ${VERSION} on ${OPENSSL_ARCHIVE_URL}"
-    echo "Please verify that the version you are trying to build exists, check cURL's error message and/or your network connection."
+    echo "Error: failed to download OpenSSL ${VERSION} from ${OPENSSL_ARCHIVE_URL}"
+    rm -f "${OPENSSL_ARCHIVE_FILE_NAME}"
     exit 1
   fi
-
-  # Archive was found, so proceed with download.
-  # -O Use server-specified filename for download
-  curl ${CURL_OPTIONS} -O "${OPENSSL_ARCHIVE_URL}"
-
 else
   echo "Using ${OPENSSL_ARCHIVE_FILE_NAME}"
 fi

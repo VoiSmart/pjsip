@@ -3,13 +3,12 @@
 set -e
 
 # environment variables
-export OPENSSL_VERSION="1.1.1c" # specify the openssl version to use
+export OPENSSL_VERSION="3.5.5" # specify the openssl version to use
 export PJSIP_VERSION="2.12.1"
-export OPUS_VERSION="1.3.1"
+export OPUS_VERSION="1.6.1"
 export G729_VERSION="1.1.1"
-export OPENH264_VERSION="2.2.0"
 export MACOS_MIN_SDK_VERSION="10.12"
-export IOS_MIN_SDK_VERSION="9.0"
+export IOS_MIN_SDK_VERSION="15.0"
 
 # see http://stackoverflow.com/a/3915420/318790
 function realpath { echo $(cd $(dirname "$1"); pwd)/$(basename "$1"); }
@@ -30,7 +29,7 @@ function download() {
 OPENSSL_DIR="${BUILD_DIR}/openssl"
 OPENSSL_ENABLED=
 function openssl() {
-    if [ ! -d "${OPENSSL_DIR}/lib/iOS" ] || [ ! -d "${OPENSSL_DIR}/lib/macOS" ]; then
+    if [ ! -d "${OPENSSL_DIR}/lib/ios" ]; then
         if [ ! -d "${OPENSSL_DIR}" ]; then
             mkdir -p "${OPENSSL_DIR}"
         fi
