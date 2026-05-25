@@ -1,0 +1,157 @@
+diff --git a/pjsip/include/pjsua-lib/pjsua.h b/pjsip/include/pjsua-lib/pjsua.h
+index 8b34dd3f5..367100f11 100644
+--- a/pjsip/include/pjsua-lib/pjsua.h
++++ b/pjsip/include/pjsua-lib/pjsua.h
+@@ -6508,6 +6508,23 @@ PJ_DECL(pj_status_t) pjsua_call_xfer_replaces(pjsua_call_id call_id,
+                                               unsigned options,
+                                               const pjsua_msg_data *msg_data);
+ 
++/**
++ * Same as #pjsua_call_xfer_replaces(), but uses the remote Contact URI of
++ * \a dest_call_id instead of its AOR. Falls back to AOR if no Contact is
++ * available.
++ *
++ * @param call_id       The call id to be transferred.
++ * @param dest_call_id  The call id to be replaced.
++ * @param options       See #pjsua_call_xfer_replaces().
++ * @param msg_data      Optional message components to be sent with the request.
++ *
++ * @return              PJ_SUCCESS on success, or the appropriate error code.
++ */
++PJ_DECL(pj_status_t) pjsua_call_xfer_replaces_contact(pjsua_call_id call_id,
++                                                       pjsua_call_id dest_call_id,
++                                                       unsigned options,
++                                                       const pjsua_msg_data *msg_data);
++
+ /**
+  * Send DTMF digits to remote using RFC 2833 payload formats. Use 
+  * #pjsua_call_send_dtmf() to send DTMF using SIP INFO or other method in 
+diff --git a/pjsip/src/pjsua-lib/pjsua_call.c b/pjsip/src/pjsua-lib/pjsua_call.c
+index 34524663b..44d2a9cdc 100644
+--- a/pjsip/src/pjsua-lib/pjsua_call.c
++++ b/pjsip/src/pjsua-lib/pjsua_call.c
+@@ -3883,6 +3883,124 @@ on_error:
+     return status;
+ }
+ 
++/*
++ * Initiate attended call transfer using the remote contact URI.
++ */
++PJ_DEF(pj_status_t) pjsua_call_xfer_replaces_contact( pjsua_call_id call_id,
++                                                       pjsua_call_id dest_call_id,
++                                                       unsigned options,
++                                                       const pjsua_msg_data *msg_data)
++{
++    pjsua_call *dest_call;
++    pjsip_dialog *dest_dlg;
++    char str_dest_buf[PJSIP_MAX_URL_SIZE*2];
++    pj_str_t str_dest;
++    int len;
++    char call_id_dest_buf[PJSIP_MAX_URL_SIZE * 2];
++    int call_id_len;
++    pjsip_uri *uri;
++    pj_status_t status;
++    const pjsip_parser_const_t *pconst;
++
++
++    PJ_ASSERT_RETURN(call_id>=0 && call_id<(int)pjsua_var.ua_cfg.max_calls,
++                     PJ_EINVAL);
++    PJ_ASSERT_RETURN(dest_call_id>=0 &&
++                      dest_call_id<(int)pjsua_var.ua_cfg.max_calls,
++                     PJ_EINVAL);
++
++    PJ_LOG(4,(THIS_FILE, "Transferring call %d replacing with call %d (contact URI)",
++                         call_id, dest_call_id));
++    pj_log_push_indent();
++
++    status = acquire_call("pjsua_call_xfer_replaces_contact()", dest_call_id,
++                          &dest_call, &dest_dlg);
++    if (status != PJ_SUCCESS) {
++        pj_log_pop_indent();
++        return status;
++    }
++
++    /*
++     * Create REFER destination URI with Replaces field.
++     */
++
++    /* Make sure we have sufficient buffer's length */
++    PJ_ASSERT_ON_FAIL(dest_dlg->remote.info_str.slen +
++                      dest_dlg->call_id->id.slen +
++                      dest_dlg->remote.info->tag.slen +
++                      dest_dlg->local.info->tag.slen + 32
++                      < (long)sizeof(str_dest_buf),
++                      { status=PJSIP_EURITOOLONG; goto on_error2; });
++
++    /* Print URI - prefer remote contact over AOR for accurate routing */
++    str_dest_buf[0] = '<';
++    str_dest.slen = 1;
++
++    if (dest_dlg->remote.contact) {
++        uri = (pjsip_uri*) pjsip_uri_get_uri(dest_dlg->remote.contact->uri);
++    } else {
++        uri = (pjsip_uri*) pjsip_uri_get_uri(dest_dlg->remote.info->uri);
++    }
++    len = pjsip_uri_print(PJSIP_URI_IN_REQ_URI, uri,
++                          str_dest_buf+1, sizeof(str_dest_buf)-1);
++    if (len < 0) {
++        status = PJSIP_EURITOOLONG;
++        goto on_error2;
++    }
++
++    str_dest.slen += len;
++
++    /* This uses the same scanner definition used for SIP parsing
++     * to escape the call-id in the refer.
++     *
++     * A common pattern for call-ids is: name@domain. The '@' character,
++     * when used in a URL parameter, throws off many SIP parsers.
++     * URL escape it based off of the allowed characters for header values.
++    */
++    pconst = pjsip_parser_const();
++    call_id_len = (int)pj_strncpy2_escape(call_id_dest_buf, &dest_dlg->call_id->id,
++                                          PJ_ARRAY_SIZE(call_id_dest_buf),
++                                          &pconst->pjsip_HDR_CHAR_SPEC);
++    if (call_id_len < 0) {
++        status = PJSIP_EURITOOLONG;
++        goto on_error2;
++    }
++
++    /* Build the URI */
++    len = pj_ansi_snprintf(str_dest_buf + str_dest.slen,
++                           sizeof(str_dest_buf) - str_dest.slen,
++                           "?%s"
++                           "Replaces=%.*s"
++                           "%%3Bto-tag%%3D%.*s"
++                           "%%3Bfrom-tag%%3D%.*s>",
++                           ((options&PJSUA_XFER_NO_REQUIRE_REPLACES) ?
++                            "" : "Require=replaces&"),
++                           call_id_len,
++                           call_id_dest_buf,
++                           (int)dest_dlg->remote.info->tag.slen,
++                           dest_dlg->remote.info->tag.ptr,
++                           (int)dest_dlg->local.info->tag.slen,
++                           dest_dlg->local.info->tag.ptr);
++
++    PJ_ASSERT_ON_FAIL(len > 0 && len <= (int)sizeof(str_dest_buf)-str_dest.slen,
++                      { status=PJSIP_EURITOOLONG; goto on_error2; });
++
++    str_dest.ptr = str_dest_buf;
++    str_dest.slen += len;
++
++    pjsip_dlg_dec_lock(dest_dlg);
++
++    status = pjsua_call_xfer(call_id, &str_dest, msg_data);
++
++    pj_log_pop_indent();
++    return status;
++
++on_error2:
++    pjsip_dlg_dec_lock(dest_dlg);
++    pj_log_pop_indent();
++    return status;
++}
++
+ /*
+  * Send DTMF digits to remote.
+  */
